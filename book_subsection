@@ -1,0 +1,91 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Node class representing book components
+class Node {
+public:
+    string name;
+    vector<Node*> children;
+
+    Node(string name) : name(name) {}
+
+    void addChild(Node* child) {
+        children.push_back(child);
+    }
+
+    void printTree(int level = 0) {
+        for (int i = 0; i < level; ++i) cout << "  "; // Indentation
+        cout << "|-- " << name << endl;
+        for (Node* child : children) {
+            child->printTree(level + 1);
+        }
+    }
+};
+
+int main() {
+    string bookTitle;
+    cout << "Enter book title: ";
+    getline(cin, bookTitle);
+
+    // Create root node (Book)
+    Node* book = new Node(bookTitle);
+
+    int numChapters;
+    cout << "Enter number of chapters: ";
+    cin >> numChapters;
+    cin.ignore(); // Ignore newline
+
+    vector<Node*> chapters;
+
+    for (int i = 0; i < numChapters; i++) {
+        string chapterName;
+        cout << "Enter Chapter " << i + 1 << " name: ";
+        getline(cin, chapterName);
+
+        Node* chapter = new Node(chapterName);
+        book->addChild(chapter);
+        chapters.push_back(chapter);
+
+        int numSections;
+        cout << "Enter number of sections in " << chapterName << ": ";
+        cin >> numSections;
+        cin.ignore();
+
+        vector<Node*> sections;
+        
+        for (int j = 0; j < numSections; j++) {
+            string sectionName;
+            cout << "Enter Section " << j + 1 << " name: ";
+            getline(cin, sectionName);
+
+            Node* section = new Node(sectionName);
+            chapter->addChild(section);
+            sections.push_back(section);
+
+            int numSubsections;
+            cout << "Enter number of subsections in " << sectionName << ": ";
+            cin >> numSubsections;
+            cin.ignore();
+
+            for (int k = 0; k < numSubsections; k++) {
+                string subsectionName;
+                cout << "Enter Subsection " << k + 1 << " name: ";
+                getline(cin, subsectionName);
+
+                Node* subsection = new Node(subsectionName);
+                section->addChild(subsection);
+            }
+        }
+    }
+
+    // Print hierarchical structure
+    cout << "\nBook Structure:\n";
+    book->printTree();
+
+    // Clean up memory
+    delete book; // Assuming proper memory cleanup is done
+
+    return 0;
+}
