@@ -1,0 +1,145 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+// Structure for Student Record
+struct Student {
+    string rollNumber;
+    string name;
+    string division;
+    string address;
+};
+
+// Function to add student information
+void addStudent() {
+    ofstream file("students.txt", ios::app);
+    if (!file) {
+        cout << "Error opening file!" << endl;
+        return;
+    }
+
+    Student student;
+    cout << "Enter Roll Number: ";
+    cin >> student.rollNumber;
+    cin.ignore();
+    cout << "Enter Name: ";
+    getline(cin, student.name);
+    cout << "Enter Division: ";
+    getline(cin, student.division);
+    cout << "Enter Address: ";
+    getline(cin, student.address);
+
+    file << student.rollNumber << "," << student.name << "," 
+         << student.division << "," << student.address << endl;
+    file.close();
+    cout << "Student added successfully!\n";
+}
+
+// Function to search student by Roll Number
+void searchStudent() {
+    ifstream file("students.txt");
+    if (!file) {
+        cout << "Error opening file!" << endl;
+        return;
+    }
+
+    string rollNumber, line;
+    cout << "Enter Roll Number to search: ";
+    cin >> rollNumber;
+
+    bool found = false;
+    while (getline(file, line)) {
+        size_t pos = line.find(",");
+        string storedRollNumber = line.substr(0, pos);
+        
+        if (storedRollNumber == rollNumber) {
+            cout << "Student Found: " << line << endl;
+            found = true;
+            break;
+        }
+    }
+    file.close();
+    
+    if (!found)
+        cout << "Student record not found!\n";
+}
+
+// Function to delete student by Roll Number
+void deleteStudent() {
+    ifstream file("students.txt");
+    if (!file) {
+        cout << "Error opening file!" << endl;
+        return;
+    }
+
+    string rollNumber, line;
+    cout << "Enter Roll Number to delete: ";
+    cin >> rollNumber;
+
+    ofstream tempFile("temp.txt");
+    bool found = false;
+
+    while (getline(file, line)) {
+        size_t pos = line.find(",");
+        string storedRollNumber = line.substr(0, pos);
+        
+        if (storedRollNumber == rollNumber) {
+            found = true;
+            continue;
+        }
+        tempFile << line << endl;
+    }
+
+    file.close();
+    tempFile.close();
+
+    if (found) {
+        remove("students.txt");
+        rename("temp.txt", "students.txt");
+        cout << "Student record deleted successfully!\n";
+    } else {
+        cout << "Student record not found!\n";
+    }
+}
+
+// Function to display all student records
+void displayAll() {
+    ifstream file("students.txt");
+    if (!file) {
+        cout << "Error opening file!" << endl;
+        return;
+    }
+
+    string line;
+    cout << "\nStudent Records:\n";
+    while (getline(file, line)) {
+        cout << line << endl;
+    }
+    file.close();
+}
+
+int main() {
+    int choice;
+    while (true) {
+        cout << "\n1. Add Student\n2. Search Student\n3. Delete Student\n4. Display All\n5. Exit\nEnter choice: ";
+        cin >> choice;
+        cin.ignore();
+
+        if (choice == 1)
+            addStudent();
+        else if (choice == 2)
+            searchStudent();
+        else if (choice == 3)
+            deleteStudent();
+        else if (choice == 4)
+            displayAll();
+        else if (choice == 5)
+            break;
+        else
+            cout << "Invalid choice! Try again.\n";
+    }
+
+    return 0;
+}
