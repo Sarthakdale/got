@@ -1,0 +1,212 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+// Node Structure for AVL Tree
+class Node {
+public:
+    string keyword;
+    string meaning;
+    Node* left;
+    Node* right;
+    int height;
+
+    Node(string k, string m) {
+        keyword = k;
+        meaning = m;
+        left = right = nullptr;
+        height = 1;
+    }
+};
+
+// Function to get the height of the node
+int getHeight(Node* node) {
+    return (node == nullptr) ? 0 : node->height;
+}
+
+// Function to calculate balance factor
+int getBalanceFactor(Node* node) {
+    return (node == nullptr) ? 0 : getHeight(node->left) - getHeight(node->right);
+}
+
+// Right Rotation (Used in AVL Balancing)
+Node* rotateRight(Node* y) {
+    Node* x = y->left;
+    Node* T2 = x->right;
+    
+    x->right = y;
+    y->left = T2;
+    
+    y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
+    x->height = max(getHeight(x->left), getHeight(x->right)) + 1;
+    
+    return x;
+}
+
+// Left Rotation (Used in AVL Balancing)
+Node* rotateLeft(Node* x) {
+    Node* y = x->right;
+    Node* T2 = y->left;
+    
+    y->left = x;
+    x->right = T2;
+    
+    x->height = max(getHeight(x->left), getHeight(x->right)) + 1;
+    y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
+    
+    return y;
+}
+
+// Insert function for AVL Tree
+Node* insert(Node* root, string keyword, string meaning) {
+    if (!root) return new Node(keyword, meaning);
+    
+    if (keyword < root->keyword)
+        root->left = insert(root->left, keyword, meaning);
+    else if (keyword > root->keyword)
+        root->right = insert(root->right, keyword, meaning);
+    else {
+        root->meaning = meaning; // Update existing keyword
+        return root;
+    }
+
+    root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
+    int balance = getBalanceFactor(root);
+
+    // Left Heavy
+    if (balance > 1 && keyword < root->left->keyword)
+        return rotateRight(root);
+
+    // Right Heavy
+    if (balance < -1 && keyword > root->right->keyword)
+        return rotateLeft(root);
+
+    // Left-Right Heavy
+    if (balance > 1 && keyword > root->left->keyword) {
+        root->left = rotateLeft(root->left);
+        return rotateRight(root);
+    }
+
+    // Right-Left Heavy
+    if (balance < -1 && keyword < root->right->keyword) {
+        root->right = rotateRight(root->right);
+        return rotateLeft(root);
+    }
+
+    return root;
+}
+
+// Find Minimum Node (Used for Deletion)
+Node* findMin(Node* node) {
+    while (node->left) node = node->left;
+    return node;
+}
+
+// Delete a keyword
+Node* deleteNode(Node* root, string keyword) {
+    if (!root) return root;
+
+    if (keyword < root->keyword)
+        root->left = deleteNode(root->left, keyword);
+    else if (keyword > root->keyword)
+        root->right = deleteNode(root->right, keyword);
+    else {
+        if (!root->left || !root->right) {
+            Node* temp = root->left ? root->left : root->right;
+            delete root;
+            return temp;
+        }
+        Node* temp = findMin(root->right);
+        root->keyword = temp->keyword;
+        root->meaning = temp->meaning;
+        root->right = deleteNode(root->right, temp->keyword);
+    }
+
+    root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
+    int balance = getBalanceFactor(root);
+
+    if (balance > 1 && getBalanceFactor(root->left) >= 0)
+        return rotateRight(root);
+    if (balance > 1 && getBalanceFactor(root->left) < 0) {
+        root->left = rotateLeft(root->left);
+        return rotateRight(root);
+    }
+    if (balance < -1 && getBalanceFactor(root->right) <= 0)
+        return rotateLeft(root);
+    if (balance < -1 && getBalanceFactor(root->right) > 0) {
+        root->right = rotateRight(root->right);
+        return rotateLeft(root);
+    }
+
+    return root;
+}
+
+// Search for a keyword
+bool search(Node* root, string keyword) {
+    if (!root) return false;
+    if (root->keyword == keyword) return true;
+    return keyword < root->keyword ? search(root->left, keyword) : search(root->right, keyword);
+}
+
+// Inorder Traversal (Ascending Order Display)
+void inorder(Node* root) {
+    if (!root) return;
+    inorder(root->left);
+    cout << root->keyword << " : " << root->meaning << endl;
+    inorder(root->right);
+}
+
+// Reverse Inorder Traversal (Descending Order Display)
+void reverseInorder(Node* root) {
+    if (!root) return;
+    reverseInorder(root->right);
+    cout << root->keyword << " : " << root->meaning << endl;
+    reverseInorder(root->left);
+}
+
+int main() {
+    Node* root = nullptr;
+    int choice;
+    string keyword, meaning;
+
+    while (true) {
+        cout << "\n1. Insert Keyword\n2. Delete Keyword\n3. Search Keyword\n4. Display Ascending\n5. Display Descending\n6. Exit\nEnter choice: ";
+        cin >> choice;
+        cin.ignore();
+
+        if (choice == 1) {
+            cout << "Enter keyword: ";
+            getline(cin, keyword);
+            cout << "Enter meaning: ";
+            getline(cin, meaning);
+            root = insert(root, keyword, meaning);
+        }
+        else if (choice == 2) {
+            cout << "Enter keyword to delete: ";
+            getline(cin, keyword);
+            root = deleteNode(root, keyword);
+        }
+        else if (choice == 3) {
+            cout << "Enter keyword to search: ";
+            getline(cin, keyword);
+            cout << (search(root, keyword) ? "Found" : "Not Found") << endl;
+        }
+        else if (choice == 4) {
+            cout << "\nDictionary (Ascending Order):\n";
+            inorder(root);
+        }
+        else if (choice == 5) {
+            cout << "\nDictionary (Descending Order):\n";
+            reverseInorder(root);
+        }
+        else if (choice == 6) {
+            break;
+        }
+        else {
+            cout << "Invalid choice, try again!\n";
+        }
+    }
+
+    return 0;
+}
