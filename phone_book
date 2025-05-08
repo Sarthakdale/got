@@ -1,0 +1,93 @@
+class LinearProbingHashTable:
+    def __init__(self, size):
+        self.size = size
+        self.table = [None] * size
+
+    def hash_function(self, key):
+        return hash(key) % self.size
+
+    def insert(self, key, value):
+        index = self.hash_function(key)
+        comparisons = 0
+        while self.table[index] is not None and self.table[index][0] != key:
+            index = (index + 1) % self.size  # Linear probing
+            comparisons += 1
+        self.table[index] = (key, value)
+        return comparisons + 1
+
+    def search(self, key):
+        index = self.hash_function(key)
+        comparisons = 0
+        while self.table[index] is not None:
+            comparisons += 1
+            if self.table[index][0] == key:
+                return self.table[index][1], comparisons
+            index = (index + 1) % self.size
+        return None, comparisons
+
+
+class SeparateChainingHashTable:
+    def __init__(self, size):
+        self.size = size
+        self.table = [[] for _ in range(size)]
+
+    def hash_function(self, key):
+        return hash(key) % self.size
+
+    def insert(self, key, value):
+        index = self.hash_function(key)
+        self.table[index].append((key, value))
+        return len(self.table[index])  # Number of comparisons
+
+    def search(self, key):
+        index = self.hash_function(key)
+        comparisons = 0
+        for k, v in self.table[index]:
+            comparisons += 1
+            if k == key:
+                return v, comparisons
+        return None, comparisons
+
+
+# User Input for Telephone Directory
+N = int(input("Enter number of clients: "))
+
+phonebook = {}
+for _ in range(N):
+    name = input("Enter client name: ")
+    phone = input("Enter client phone number: ")
+    phonebook[name] = phone
+
+# Initialize hash tables
+lp_table = LinearProbingHashTable(N)
+sc_table = SeparateChainingHashTable(N)
+
+# Insert data and track comparisons
+lp_insert_comparisons = []
+sc_insert_comparisons = []
+
+for key, value in phonebook.items():
+    lp_insert_comparisons.append(lp_table.insert(key, value))
+    sc_insert_comparisons.append(sc_table.insert(key, value))
+
+# User enters names to search
+search_keys = []
+print("\nEnter names to search:")
+for _ in range(min(5, N)):
+    search_keys.append(input("Client name: "))
+
+lp_search_comparisons = []
+sc_search_comparisons = []
+
+for key in search_keys:
+    _, comparisons_lp = lp_table.search(key)
+    _, comparisons_sc = sc_table.search(key)
+    lp_search_comparisons.append(comparisons_lp)
+    sc_search_comparisons.append(comparisons_sc)
+
+# Comparison Results
+print(f"\nLinear Probing: Avg Insert Comparisons = {sum(lp_insert_comparisons) / len(lp_insert_comparisons):.2f}")
+print(f"Separate Chaining: Avg Insert Comparisons = {sum(sc_insert_comparisons) / len(sc_insert_comparisons):.2f}")
+
+print(f"\nLinear Probing: Avg Search Comparisons = {sum(lp_search_comparisons) / len(lp_search_comparisons):.2f}")
+print(f"Separate Chaining: Avg Search Comparisons = {sum(sc_search_comparisons) / len(sc_search_comparisons):.2f}")
